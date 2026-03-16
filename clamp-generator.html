@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Clamp Generator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f5f4f0;
+      --surface: #ffffff;
+      --border: #d0cdc5;
+      --border-focus: #2e7d32;
+      --text: #1a1a1a;
+      --muted: #888580;
+      --accent: #3aad3e;
+      --accent-hover: #2e8f32;
+      --accent-text: #ffffff;
+      --output-bg: #1a1a1a;
+      --output-text: #a8ff78;
+      --mono: 'Space Mono', monospace;
+      --sans: 'DM Sans', sans-serif;
+      --radius: 12px;
+      --shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 60px 20px 80px;
+    }
+
+    h1 {
+      font-family: var(--mono);
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 52px;
+      text-align: center;
+    }
+
+    .card {
+      background: var(--surface);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+      padding: 40px 48px;
+      width: 100%;
+      max-width: 780px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 28px 40px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    label {
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      font-weight: 400;
+      color: var(--muted);
+      letter-spacing: 0.03em;
+    }
+
+    input[type="number"] {
+      font-family: var(--mono);
+      font-size: 1rem;
+      color: var(--text);
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 16px;
+      width: 100%;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      -moz-appearance: textfield;
+    }
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
+    input[type="number"]:focus {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px rgba(58,173,62,0.15);
+    }
+    input[type="number"]::placeholder {
+      color: var(--muted);
+      opacity: 0.7;
+    }
+
+    /* Checkbox field */
+    .field-check {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .check-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding-top: 4px;
+    }
+    input[type="checkbox"] {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 20px;
+      height: 20px;
+      border: 1.5px solid var(--border);
+      border-radius: 50%;
+      cursor: pointer;
+      position: relative;
+      transition: border-color 0.2s, background 0.2s;
+      flex-shrink: 0;
+    }
+    input[type="checkbox"]:checked {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+    input[type="checkbox"]:checked::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 6px;
+      height: 6px;
+      background: #fff;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .actions {
+      display: flex;
+      justify-content: center;
+      margin-top: 36px;
+    }
+
+    button.generate {
+      font-family: var(--mono);
+      font-size: 1rem;
+      font-weight: 700;
+      background: var(--accent);
+      color: var(--accent-text);
+      border: none;
+      border-radius: 50px;
+      padding: 18px 52px;
+      cursor: pointer;
+      letter-spacing: 0.02em;
+      transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+      box-shadow: 0 4px 18px rgba(58,173,62,0.35);
+    }
+    button.generate:hover {
+      background: var(--accent-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 22px rgba(58,173,62,0.45);
+    }
+    button.generate:active {
+      transform: translateY(0);
+    }
+
+    /* Output */
+    .output-section {
+      margin-top: 32px;
+      animation: fadeUp 0.3s ease;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .output-label {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--muted);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .output-box {
+      background: var(--output-bg);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .output-value {
+      font-family: var(--mono);
+      font-size: 0.95rem;
+      color: var(--output-text);
+      word-break: break-all;
+      flex: 1;
+    }
+
+    button.copy {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      background: rgba(255,255,255,0.08);
+      color: #ccc;
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 8px;
+      padding: 8px 14px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.2s, color 0.2s;
+      flex-shrink: 0;
+    }
+    button.copy:hover {
+      background: rgba(255,255,255,0.16);
+      color: #fff;
+    }
+    button.copy.copied {
+      background: rgba(58,173,62,0.3);
+      color: var(--output-text);
+      border-color: var(--accent);
+    }
+
+    .error {
+      color: #e53935;
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      margin-top: 16px;
+      text-align: center;
+    }
+
+    .divider {
+      border: none;
+      border-top: 1.5px solid var(--border);
+      margin: 32px 0 0;
+    }
+
+    @media (max-width: 560px) {
+      .card { padding: 28px 20px; }
+      .grid { grid-template-columns: 1fr; gap: 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<h1>Clamp Generator</h1>
+
+<div class="card">
+  <div class="grid">
+
+    <div class="field">
+      <label for="minVal">Minimum Value (px)</label>
+      <input type="number" id="minVal" placeholder="Minimum Value" />
+    </div>
+
+    <div class="field">
+      <label for="maxVal">Maximum Value (px)</label>
+      <input type="number" id="maxVal" placeholder="Maximum Value" />
+    </div>
+
+    <div class="field">
+      <label for="minVp">Minimum Viewport Width (px)</label>
+      <input type="number" id="minVp" value="500" />
+    </div>
+
+    <div class="field">
+      <label for="maxVp">Maximum Viewport Width (px)</label>
+      <input type="number" id="maxVp" value="1350" />
+    </div>
+
+    <div class="field">
+      <label for="remBase">Default Rem Value (px)</label>
+      <input type="number" id="remBase" value="10" />
+    </div>
+
+    <div class="field field-check">
+      <label>Add calc()</label>
+      <div class="check-wrap">
+        <input type="checkbox" id="addCalc" />
+      </div>
+    </div>
+
+  </div>
+
+  <div class="actions">
+    <button class="generate" onclick="generate()">Generate Clamp</button>
+  </div>
+
+  <div id="errorMsg" class="error" style="display:none;"></div>
+
+  <div id="outputSection" class="output-section" style="display:none;">
+    <hr class="divider" />
+    <div style="margin-top:24px;">
+      <div class="output-label">Result</div>
+      <div class="output-box">
+        <span class="output-value" id="outputValue"></span>
+        <button class="copy" id="copyBtn" onclick="copyResult()">Copy</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function generate() {
+    const minVal  = parseFloat(document.getElementById('minVal').value);
+    const maxVal  = parseFloat(document.getElementById('maxVal').value);
+    const minVp   = parseFloat(document.getElementById('minVp').value);
+    const maxVp   = parseFloat(document.getElementById('maxVp').value);
+    const remBase = parseFloat(document.getElementById('remBase').value) || 16;
+    const addCalc = document.getElementById('addCalc').checked;
+
+    const errEl  = document.getElementById('errorMsg');
+    const outSec = document.getElementById('outputSection');
+    errEl.style.display = 'none';
+    outSec.style.display = 'none';
+
+    if (isNaN(minVal) || isNaN(maxVal)) {
+      errEl.textContent = 'Please enter both Minimum and Maximum values.';
+      errEl.style.display = 'block';
+      return;
+    }
+    if (isNaN(minVp) || isNaN(maxVp) || minVp >= maxVp) {
+      errEl.textContent = 'Viewport widths are invalid. Min must be less than Max.';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    // Match reference app formula exactly:
+    // slope (vw %) = 100 * (maxVal - minVal) / (maxVp - minVp)
+    const slopePct = round(100 * (maxVal - minVal) / (maxVp - minVp));
+    // intercept (rem) = (minVp * maxVal - maxVp * minVal) / (minVp - maxVp) / remBase
+    const interceptRem = round((minVp * maxVal - maxVp * minVal) / (minVp - maxVp) / remBase);
+    const minRem = round(minVal / remBase);
+    const maxRem = round(maxVal / remBase);
+
+    // Build preferred value
+    const absIntercept = Math.abs(interceptRem);
+    const sign = interceptRem >= 0 ? '+' : '-';
+    const preferredInner = `${slopePct}vw ${sign} ${absIntercept}rem`;
+    const preferred = addCalc ? `calc(${preferredInner})` : preferredInner;
+
+    const result = `clamp(${minRem}rem, ${preferred}, ${maxRem}rem)`;
+
+    document.getElementById('outputValue').textContent = result;
+    outSec.style.display = 'block';
+
+    // reset copy button
+    const copyBtn = document.getElementById('copyBtn');
+    copyBtn.textContent = 'Copy';
+    copyBtn.classList.remove('copied');
+  }
+
+  function round(val) {
+    return Math.round(val * 1000) / 1000;
+  }
+
+  function copyResult() {
+    const text = document.getElementById('outputValue').textContent;
+    const btn = document.getElementById('copyBtn');
+
+    function onSuccess() {
+      btn.textContent = 'Copied!';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+    }
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(onSuccess).catch(() => fallbackCopy(text, onSuccess));
+    } else {
+      fallbackCopy(text, onSuccess);
+    }
+  }
+
+  function fallbackCopy(text, onSuccess) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    try { document.execCommand('copy'); onSuccess(); } catch(e) {}
+    document.body.removeChild(ta);
+  }
+
+  // Allow Enter key to trigger generate
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter') generate();
+  });
+</script>
+
+</body>
+</html>
