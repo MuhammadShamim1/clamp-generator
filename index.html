@@ -337,35 +337,34 @@
     { id: 'remBase',  key: 'cg_remBase',  def: '10',    type: 'number' },
     { id: 'addCalc',  key: 'cg_addCalc',  def: false,   type: 'checkbox' },
   ];
-
+ 
   // ── Restore values on page load ───────────────────────────────────────────
   function restoreSession() {
     PERSISTED_FIELDS.forEach(({ id, key, def, type }) => {
       const el = document.getElementById(id);
-      const stored = sessionStorage.getItem(key);
-
+      const stored = localStorage.getItem(key);
+ 
       if (type === 'checkbox') {
-        // stored as 'true' / 'false' string, or null if never set
         el.checked = stored !== null ? stored === 'true' : def;
       } else {
         el.value = stored !== null ? stored : def;
       }
     });
   }
-
+ 
   // ── Attach live listeners so every change is saved immediately ────────────
   function attachListeners() {
     PERSISTED_FIELDS.forEach(({ id, key, type }) => {
       const el = document.getElementById(id);
       const eventType = type === 'checkbox' ? 'change' : 'input';
-
+ 
       el.addEventListener(eventType, () => {
         const value = type === 'checkbox' ? el.checked : el.value;
-        sessionStorage.setItem(key, value);
+        localStorage.setItem(key, value);
       });
     });
   }
-
+ 
   // ── Main generate logic (unchanged) ──────────────────────────────────────
   function generate() {
     const minVal  = parseFloat(document.getElementById('minVal').value);
@@ -374,12 +373,12 @@
     const maxVp   = parseFloat(document.getElementById('maxVp').value);
     const remBase = parseFloat(document.getElementById('remBase').value) || 16;
     const addCalc = document.getElementById('addCalc').checked;
-
+ 
     const errEl  = document.getElementById('errorMsg');
     const outSec = document.getElementById('outputSection');
     errEl.style.display = 'none';
     outSec.style.display = 'none';
-
+ 
     if (isNaN(minVal) || isNaN(maxVal)) {
       errEl.textContent = 'Please enter both Minimum and Maximum values.';
       errEl.style.display = 'block';
@@ -390,48 +389,48 @@
       errEl.style.display = 'block';
       return;
     }
-
+ 
     const slopePct     = round(100 * (maxVal - minVal) / (maxVp - minVp));
     const interceptRem = round((minVp * maxVal - maxVp * minVal) / (minVp - maxVp) / remBase);
     const minRem       = round(minVal / remBase);
     const maxRem       = round(maxVal / remBase);
-
+ 
     const absIntercept  = Math.abs(interceptRem);
     const sign          = interceptRem >= 0 ? '+' : '-';
     const preferredInner = `${slopePct}vw ${sign} ${absIntercept}rem`;
     const preferred      = addCalc ? `calc(${preferredInner})` : preferredInner;
     const result         = `clamp(${minRem}rem, ${preferred}, ${maxRem}rem)`;
-
+ 
     document.getElementById('outputValue').textContent = result;
     outSec.style.display = 'block';
-
+ 
     const copyBtn = document.getElementById('copyBtn');
     copyBtn.textContent = 'Copy';
     copyBtn.classList.remove('copied');
   }
-
+ 
   function round(val) {
     return Math.round(val * 1000) / 1000;
   }
-
+ 
   // ── Copy helper ───────────────────────────────────────────────────────────
   function copyResult() {
     const text = document.getElementById('outputValue').textContent;
     const btn  = document.getElementById('copyBtn');
-
+ 
     function onSuccess() {
       btn.textContent = 'Copied!';
       btn.classList.add('copied');
       setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
     }
-
+ 
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(text).then(onSuccess).catch(() => fallbackCopy(text, onSuccess));
     } else {
       fallbackCopy(text, onSuccess);
     }
   }
-
+ 
   function fallbackCopy(text, onSuccess) {
     const ta = document.createElement('textarea');
     ta.value = text;
@@ -442,12 +441,12 @@
     try { document.execCommand('copy'); onSuccess(); } catch(e) {}
     document.body.removeChild(ta);
   }
-
+ 
   // ── Enter key shortcut ────────────────────────────────────────────────────
   document.addEventListener('keydown', e => {
     if (e.key === 'Enter') generate();
   });
-
+ 
   // ── Boot ──────────────────────────────────────────────────────────────────
   restoreSession();
   attachListeners();
